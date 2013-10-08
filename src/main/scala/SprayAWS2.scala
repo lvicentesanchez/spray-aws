@@ -1,21 +1,33 @@
 import akka.actor.ActorSystem
+import com.amazonaws.auth.AWSCredentials
+import com.amazonaws.regions.{ Region, Regions }
+import com.amazonaws.services.sqs.{ AmazonSQSAsync, AmazonSQSAsyncClient }
+import aws._
 import scala.concurrent.Future
+import scalaz.\/-
+import scalaz.std.list._
 import scalaz.contrib.std.scalaFuture._
 import scalaz.std.list._
 import scalaz.syntax.traverse._
-import spray.contrib.aws.client._
 import spray.contrib.aws.common._
 
-object SprayAWS extends App {
+object SprayAWS2 extends App with QueueModule with QueueModuleImpl with QueueConfiguration with AsyncRequest {
   implicit val system = ActorSystem()
-  implicit val contxt = system.dispatchers.lookup("pony-express.amazon-dispatcher")
+  import system.dispatcher
 
   val accessKey: String = ""
   val secretKey: String = ""
+  val authSQS: AWSCredentials = new AWSCredentials {
+    override def getAWSAccessKeyId(): String = accessKey
+    override def getAWSSecretKey(): String = secretKey
+  }
+  val queue: AmazonSQSAsync = {
+    val t = new AmazonSQSAsyncClient(authSQS)
+    t.setRegion(Region.getRegion(Regions.EU_WEST_1))
+    t
+  }
 
-  val sqsclient: SQSClient = new SQSClient(SprayAWSProps(accessKey, secretKey, "sqs.eu-west-1.amazonaws.com"))
-
-  val respons1 = sqsclient.listQueues
+  val respons1 = listQueues
 
   respons1.onSuccess {
     case resul @ _ ⇒ println(s"Respons1: $resul")
@@ -28,7 +40,10 @@ object SprayAWS extends App {
 
   println(System.currentTimeMillis())
 
-  val respons2 = (1 to 256).toList.map(_ ⇒ sqsclient.listQueues).sequenceU.map(_.sum)
+  val respons2 = (1 to 256).toList.map(_ ⇒ listQueues).sequenceU.map(list ⇒ (0 /: list) {
+    case (a, \/-(num)) ⇒ a + num
+    case (a, _) ⇒ a
+  })
 
   respons2.onSuccess {
     case resul @ _ ⇒ { println(System.currentTimeMillis()); println(s"Respons2: $resul") }
@@ -41,7 +56,10 @@ object SprayAWS extends App {
 
   println(System.currentTimeMillis())
 
-  val respons3 = (1 to 512).toList.map(_ ⇒ sqsclient.listQueues).sequenceU.map(_.sum)
+  val respons3 = (1 to 512).toList.map(_ ⇒ listQueues).sequenceU.map(list ⇒ (0 /: list) {
+    case (a, \/-(num)) ⇒ a + num
+    case (a, _) ⇒ a
+  })
 
   respons3.onSuccess {
     case resul @ _ ⇒ { println(System.currentTimeMillis()); println(s"Respons3: $resul") }
@@ -54,7 +72,10 @@ object SprayAWS extends App {
 
   println(System.currentTimeMillis())
 
-  val respons4 = (1 to 256).toList.map(_ ⇒ sqsclient.listQueues).sequenceU.map(_.sum)
+  val respons4 = (1 to 256).toList.map(_ ⇒ listQueues).sequenceU.map(list ⇒ (0 /: list) {
+    case (a, \/-(num)) ⇒ a + num
+    case (a, _) ⇒ a
+  })
 
   respons4.onSuccess {
     case resul @ _ ⇒ { println(System.currentTimeMillis()); println(s"Respons4: $resul") }
@@ -67,7 +88,10 @@ object SprayAWS extends App {
 
   println(System.currentTimeMillis())
 
-  val respons5 = (1 to 512).toList.map(_ ⇒ sqsclient.listQueues).sequenceU.map(_.sum)
+  val respons5 = (1 to 512).toList.map(_ ⇒ listQueues).sequenceU.map(list ⇒ (0 /: list) {
+    case (a, \/-(num)) ⇒ a + num
+    case (a, _) ⇒ a
+  })
 
   respons5.onSuccess {
     case resul @ _ ⇒ { println(System.currentTimeMillis()); println(s"Respons5: $resul") }
