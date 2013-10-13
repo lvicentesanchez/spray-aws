@@ -9,9 +9,17 @@ trait AwsSQS extends RequestFactoryV4 with SignerV4 { this: Client with Signer w
   import AwsSQS._
 
   def listQueues(implicit ctxt: ExecutionContext): Future[Int] =
-    pipeline.flatMap(_(request(new ListQueuesRequest()))).map(result ⇒ result.entity.asString.length)
+    pipeline.flatMap(_(request(listQueuesRequest))).map(result ⇒ result.entity.asString.length)
 }
 
 object AwsSQS {
+  // Implicit marshallers
+  //
   implicit val listQueuesRequestMarshaller: ListQueuesRequestMarshaller = new ListQueuesRequestMarshaller()
+  //
+
+  // Requests
+  //
+  val listQueuesRequest = new ListQueuesRequest()
+  //
 }
