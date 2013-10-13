@@ -36,15 +36,14 @@ object SprayAWSBuild extends Build {
   lazy val dependencies = mainDependencies ++ testDependencies ++ versionBumpDependencies
 
   lazy val mainDependencies = Seq(
-    "com.amazonaws"                          %  "aws-java-sdk"                % "1.6.0.1",
+    "com.amazonaws"                          %  "aws-java-sdk"                % "1.6.1",
     "com.typesafe.akka"                      %% "akka-actor"                  % "2.2.1",
     "com.typesafe.akka"                      %% "akka-slf4j"                  % "2.2.1",
     "com.typesafe"                           %% "scalalogging-slf4j"          % "1.0.1",
-    "com.twitter"                            %% "util-eval"                   % "6.5.0",
     "io.argonaut"                            %% "argonaut"                    % "6.0.1",
     "io.spray"                               %  "spray-client"                % "1.2+",
-    "org.scalaz"                             %% "scalaz-core"                 % "7.0.3",
-    "org.scalaz"                             %% "scalaz-effect"               % "7.0.3",
+    "org.scalaz"                             %% "scalaz-core"                 % "7.0.4",
+    //"org.scalaz"                             %% "scalaz-effect"               % "7.0.4",
     "org.slf4j"                              %  "jcl-over-slf4j"              % "1.7.5",
     "org.typelevel"                          %% "scalaz-contrib-210"          % "0.2-SNAPSHOT"
   )
@@ -57,9 +56,11 @@ object SprayAWSBuild extends Build {
   )
 
   lazy val versionBumpDependencies =  Seq(
+    "org.slf4j"                              %  "slf4j-api"                   % "1.7.5",
+    // test dependencies
+    //
     "ch.qos.logback"                         %  "logback-classic"             % "1.0.13"  % "test",
-    "ch.qos.logback"                         %  "logback-core"                % "1.0.13"  % "test",
-    "org.slf4j"                              %  "slf4j-api"                   % "1.7.5"   % "test"
+    "ch.qos.logback"                         %  "logback-core"                % "1.0.13"  % "test"
   )
   //
 
