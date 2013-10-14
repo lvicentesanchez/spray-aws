@@ -30,12 +30,6 @@ addSbtPlugin("io.spray" % "sbt-revolver" % "0.7.1")
 //
 addSbtPlugin("com.typesafe.sbt" % "sbt-scalariform" % "1.2.0")
 
-// Sublime2 + Ensime plugins
-//
-addSbtPlugin("com.orrsella" % "sbt-sublime" % "1.0.8")
-
-addSbtPlugin("org.ensime" % "ensime-sbt-cmd" % "0.1.2")
-
 // Update plugin
 //
 addSbtPlugin("com.timushev.sbt" % "sbt-updates" % "0.1.2")

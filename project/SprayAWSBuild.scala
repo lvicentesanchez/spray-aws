@@ -3,18 +3,20 @@ import Keys._
 // sbt-assembly
 import sbtassembly.Plugin._
 import AssemblyKeys._
-// sbt-revolver
-import spray.revolver.RevolverPlugin._
+// sbt-buildinfo
+import sbtbuildinfo.Plugin._
+// sbt-dependecy-graph
+import net.virtualvoid.sbt.graph.Plugin._
 // sbt-scalariform
 import com.typesafe.sbt.SbtScalariform._
 import scalariform.formatter.preferences._
-// sbt-dependecy-graph
-import net.virtualvoid.sbt.graph.Plugin._
 // sbt-release
 import sbtrelease.{ Version => ReleaseVersion, _ }
 import sbtrelease.ReleasePlugin._
 import sbtrelease.ReleasePlugin.ReleaseKeys._
 import sbtrelease.Utilities._
+// sbt-revolver
+import spray.revolver.RevolverPlugin._
 
 object SprayAWSBuild extends Build {
 
@@ -36,14 +38,13 @@ object SprayAWSBuild extends Build {
   lazy val dependencies = mainDependencies ++ testDependencies ++ versionBumpDependencies
 
   lazy val mainDependencies = Seq(
-    "com.amazonaws"                          %  "aws-java-sdk"                % "1.6.1",
+    "com.amazonaws"                          %  "aws-java-sdk"                % "1.6.1" exclude("commons-logging", "commons-logging"),
     "com.typesafe.akka"                      %% "akka-actor"                  % "2.2.1",
     "com.typesafe.akka"                      %% "akka-slf4j"                  % "2.2.1",
     "com.typesafe"                           %% "scalalogging-slf4j"          % "1.0.1",
     "io.argonaut"                            %% "argonaut"                    % "6.0.1",
     "io.spray"                               %  "spray-client"                % "1.2+",
     "org.scalaz"                             %% "scalaz-core"                 % "7.0.4",
-    //"org.scalaz"                             %% "scalaz-effect"               % "7.0.4",
     "org.slf4j"                              %  "jcl-over-slf4j"              % "1.7.5",
     "org.typelevel"                          %% "scalaz-contrib-210"          % "0.2-SNAPSHOT"
   )
@@ -56,11 +57,12 @@ object SprayAWSBuild extends Build {
   )
 
   lazy val versionBumpDependencies =  Seq(
+    "org.apache.httpcomponents"              %  "httpclient"                  % "4.3" exclude("commons-logging", "commons-logging"),
+    "org.apache.httpcomponents"              %  "httpcore"                    % "4.3" exclude("commons-logging", "commons-logging"),
     "org.slf4j"                              %  "slf4j-api"                   % "1.7.5",
-    // test dependencies
-    //
-    "ch.qos.logback"                         %  "logback-classic"             % "1.0.13"  % "test",
-    "ch.qos.logback"                         %  "logback-core"                % "1.0.13"  % "test"
+    "ch.qos.logback"                         %  "logback-classic"             % "1.0.13",
+    "ch.qos.logback"                         %  "logback-core"                % "1.0.13",
+    "org.slf4j"                              %  "slf4j-api"                   % "1.7.5"
   )
   //
 
@@ -122,15 +124,14 @@ object SprayAWSBuild extends Build {
   //
   lazy val defaultSettings =
     Defaults.defaultSettings ++
+    assemblySettings ++
+    buildInfoSettings ++
     buildSettings ++
     compileSettings ++
-    scalariformSettings ++
-    Revolver.settings ++
-    assemblySettings ++
     graphSettings ++
-    releaseSettings ++
-    testSettings ++
-    InfoSettings.all
+    Revolver.settings ++
+    scalariformSettings ++
+    testSettings
   //
 
   lazy val main = Project(
@@ -139,6 +140,11 @@ object SprayAWSBuild extends Build {
     settings = defaultSettings ++ Seq(
       resolvers ++= resolverSettings,
       libraryDependencies ++= dependencies,
+      // Build Info
+      //
+      sourceGenerators in Compile <+= buildInfo,
+      buildInfoKeys := Seq[BuildInfoKey](name, version),
+      //
       ScalariformKeys.preferences := formattingSettings,
       fork in run := true,
       fork in Test := true,
@@ -146,6 +152,11 @@ object SprayAWSBuild extends Build {
       connectInput in run := true,
       javaOptions in run ++= forkedJvmOption,
       javaOptions in Test ++= forkedJvmOption,
+      jarName in assembly <<= (name, version) map ( (n, v) => s"$n-$v.jar" ),
+      mergeStrategy in assembly <<= (mergeStrategy in assembly)((default: String => MergeStrategy) => _  match {
+          case "rootdoc.txt" => MergeStrategy.discard
+          case x => default(x)
+      }),
       publishArtifact in (Compile, packageBin) := false
     )
   )
